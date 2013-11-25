@@ -1,0 +1,141 @@
+#include <LiquidCrystal.h>
+
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+int s=55; // Adjust the starting seconds
+int m=59; // Adjust the starting minutes
+int h=7; // Adjust the starting hours
+int Alarm_s=0; // Adjust the alarm seconds
+int Alarm_m=0; // Adjust the alarm minutes
+int Alarm_h=8; // Adjust the alarm hours
+
+int ledArray[] = {13, 10, 1, 8, 7, };
+int rate = 50;
+int pause = 1;
+
+boolean x=false;
+
+
+
+ISR(TIMER1_OVF_vect) {
+ s++;
+ if(s==60){
+   s=0;
+   m++;
+ }
+
+ if(m==60){
+   m=0;
+   h++;
+ }
+
+ if(h>23){
+   h=0;
+ }
+
+ x=!x;
+
+ TCNT1=0x0BDC;
+
+}// end of ISR Function
+
+
+
+void setup() {
+
+    
+ lcd.begin(16, 2);
+ lcd.setCursor(2,0);
+ lcd.print(":");
+
+for (int i=0; i<5; i++){
+    pinMode(ledArray[i], OUTPUT);
+  }    
+
+TIMSK1=0x01; // enabled global and timer overflow interrupt;
+TCCR1A = 0x00; // normal operation page 148 (mode0);
+TCNT1=0x0BDC; // set initial value to remove time error (16bit counter register)
+TCCR1B = 0x04; // start timer/ set clock
+
+}
+
+
+
+void loop () {
+
+ if(x==true){
+
+   lcd.setCursor(5,0);
+
+   lcd.print(":");
+
+ }
+
+ else{
+
+   lcd.setCursor(5,0);
+
+ lcd.print(":");}
+ seconds();
+ minutes();
+ hours();
+
+
+if (h == Alarm_h & m == Alarm_m & s >= Alarm_s)
+{
+  for (int i=0; i<5; i++){
+    digitalWrite(ledArray[i], HIGH);
+    delay(rate);
+    digitalWrite(ledArray[i], LOW);
+    if (i == 4) delay(pause*rate);
+    else delay(rate);
+  }
+   for (int j=1; j<4; j++){
+    int k = 4-j;
+    digitalWrite(ledArray[k], HIGH);
+    delay(rate);
+    digitalWrite(ledArray[k], LOW);
+    delay(rate);
+  }
+
+  // Sound and light
+}
+   } // End of loop function
+
+  
+
+ int seconds(){
+
+   lcd.setCursor(6,0);
+
+   if(s<10){
+
+     lcd.print("0");}
+
+     lcd.print(s);
+     lcd.print(" ");
+ }
+
+ int minutes(){
+
+   lcd.setCursor(3,0);
+
+   if(m<10){
+
+     lcd.print("0");}
+
+     lcd.print(m);
+
+ }
+
+ int hours(){
+
+   lcd.setCursor(0,0);
+
+   if(h<10){
+
+     lcd.print("0");}
+
+     lcd.print(h);
+
+ }
+
